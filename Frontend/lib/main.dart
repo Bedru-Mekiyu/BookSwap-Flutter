@@ -10,7 +10,7 @@ import 'package:bookswap/change_password_page.dart';
 import 'package:bookswap/edit_profile_page.dart';
 import 'package:bookswap/edit_book_page.dart';
 import 'package:bookswap/book_detail_page.dart';
-import 'package:bookswap/my_swap_requests_page.dart';
+import 'package:bookswap/my_swap_request_page.dart';
 import 'package:bookswap/my_book_list_page.dart';
 import 'package:bookswap/admin_auth_page.dart';
 import 'package:bookswap/admin_dashboard_page.dart';

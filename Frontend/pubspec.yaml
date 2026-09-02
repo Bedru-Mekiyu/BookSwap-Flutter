@@ -1,5 +1,5 @@
 name: bookswap
-description: "A new Flutter project."
+description: "A Flutter mobile app for peer-to-peer book swapping."
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -13,6 +13,8 @@ dependencies:
   dio: ^5.4.3+1
   shared_preferences: ^2.2.3
   cupertino_icons: ^1.0.6
+  http: ^1.2.1
+  image_picker: ^1.1.1
 
 dev_dependencies:
   flutter_test:

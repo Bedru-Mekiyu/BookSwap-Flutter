@@ -46,11 +46,10 @@ class _BookDetailPageState extends ConsumerState<BookDetailPage> {
     }
 
     try {
-      // Assuming requestSwap in BooksNotifier takes bookId and an optional message
-      await ref.read(booksProvider.notifier).requestSwap(
-            requestedBookId,
-            'Swap request for ${widget.book['title']}',
-          );
+      await ref.read(booksProvider.notifier).requestSwap({
+        'requestedBookId': requestedBookId,
+        'message': 'Swap request for ${widget.book['title']}',
+      });
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

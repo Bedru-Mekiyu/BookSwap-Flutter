@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:bookswap/home_page.dart';
-import 'package:bookswap/my_book_page.dart';
-import 'package:bookswap/profile_page.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io'; // Required for File
 import 'package:http/http.dart' as http; // Import http package
