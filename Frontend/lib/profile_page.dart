@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:bookswap/edit_profile_page.dart';
 import 'package:bookswap/providers/auth_provider.dart';
-import 'package:bookswap/providers/books_provider.dart'; // Needed for navigation
 import 'package:dio/dio.dart'; // Import DioException
 
 class ProfilePage extends ConsumerStatefulWidget {
@@ -105,7 +104,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     final profileState = ref.watch(profileProvider);
-    final authState = ref.watch(authProvider);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF3E5F5), // Light purple background

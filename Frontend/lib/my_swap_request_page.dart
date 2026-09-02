@@ -55,7 +55,6 @@ class _MySwapRequestsPageState extends ConsumerState<MySwapRequestsPage> {
   Widget _buildBookTradeInfo(Map<String, dynamic> trade, bool isSent) {
     final book = trade['requestedBook'];
     final requester = trade['requester'];
-    final owner = trade['owner'];
     final status = trade['status'];
 
     final offeredBook = trade['offeredBook'];

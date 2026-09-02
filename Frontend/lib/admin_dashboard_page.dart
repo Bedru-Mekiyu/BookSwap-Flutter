@@ -4,7 +4,6 @@ import '../providers/admin_provider.dart';
 import '../providers/auth_provider.dart';
 import 'edit_profile_page.dart';
 import 'admin_profile_page.dart';
-import 'add_user_page.dart';
 
 class AdminDashboardPage extends ConsumerStatefulWidget {
   const AdminDashboardPage({super.key});

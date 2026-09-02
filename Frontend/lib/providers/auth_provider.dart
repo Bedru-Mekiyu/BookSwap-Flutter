@@ -278,11 +278,11 @@ Future<void> signup(String username, String email, String password) async {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      final response = await DioClient.dio.post(
+      await DioClient.dio.post(
         '/api/auth/admin-signup',
         data: {'name': username, 'email': email, 'password': password},
       );
-state = state.copyWith(
+      state = state.copyWith(
         isAdminRegistered: true,
         isLoading: false,
         error: null,
