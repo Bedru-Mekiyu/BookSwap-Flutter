@@ -1,0 +1,28 @@
+# Node / Backend
+node_modules/
+backend/node_modules/
+.env
+backend/.env
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# Flutter / Dart
+bookswap/.dart_tool/
+bookswap/.flutter-plugins
+bookswap/.flutter-plugins-dependencies
+bookswap/.packages
+bookswap/build/
+bookswap/ios/Pods/
+bookswap/ios/.symlinks/
+bookswap/ios/Flutter/Flutter.framework
+bookswap/ios/Flutter/Flutter.podspec
+bookswap/android/.gradle/
+bookswap/android/local.properties
+
+# IDE & OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+*.log
