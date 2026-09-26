@@ -260,10 +260,6 @@ class AuthNotifier extends StateNotifier<AuthState> {
       rethrow;
     }
   }
-        error: 'An unexpected error occurred',
-      );
-    }
-  }
 
   Future<bool> checkAdminStatus() async {
     try {

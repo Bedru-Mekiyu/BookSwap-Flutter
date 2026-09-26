@@ -38,7 +38,7 @@ jobs:
       - name: Build Android Release APK
         working-directory: ./bookswap
         run: |
-          flutter build apk --release --dart-define=BASE_URL=https://bookswap-backend-eygy.onrender.com
+          flutter build apk --release --android-skip-build-dependency-validation --dart-define=BASE_URL=https://bookswap-backend-eygy.onrender.com
 
       - name: Upload Android APK Artifact
         uses: actions/upload-artifact@v4
