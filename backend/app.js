@@ -57,6 +57,10 @@ if (require.main === module) {
     })
     .catch((err) => {
       console.error('❌ MongoDB connection failed:', err.message);
+      if (err.message.includes('ENOTFOUND') && MONGO_URI.includes('cluster0.mongodb.net')) {
+        console.error('💡 Tip: "cluster0.mongodb.net" is an example placeholder. In MongoDB Atlas, each cluster has a unique identifier, like "cluster0.abcde.mongodb.net". Please update your MONGO_URI environment variable on Render with your actual cluster URI.');
+      }
+      process.exit(1);
     });
 }
 
