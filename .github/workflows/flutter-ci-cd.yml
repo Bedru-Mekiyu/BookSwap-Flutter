@@ -1,0 +1,77 @@
+name: BookSwap Flutter CI/CD
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-apk:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        working-directory: ./bookswap
+        run: flutter pub get
+
+      - name: Build Android Release APK
+        working-directory: ./bookswap
+        run: |
+          flutter build apk --release --dart-define=BASE_URL=https://bookswap-backend-eygy.onrender.com
+
+      - name: Upload Android APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bookswap-android-apk
+          path: bookswap/build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+
+  build-web:
+    name: Build Flutter Web
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        working-directory: ./bookswap
+        run: flutter pub get
+
+      - name: Build Flutter Web
+        working-directory: ./bookswap
+        run: |
+          flutter build web --release --dart-define=BASE_URL=https://bookswap-backend-eygy.onrender.com
+
+      - name: Upload Web Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bookswap-web-build
+          path: bookswap/build/web
+          if-no-files-found: error

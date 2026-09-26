@@ -1,0 +1,12 @@
+.git
+.github
+node_modules
+backend/node_modules
+backend/uploads/*
+!backend/uploads/.gitkeep
+bookswap/.dart_tool
+bookswap/build
+bookswap/ios
+bookswap/windows
+bookswap/linux
+bookswap/macos

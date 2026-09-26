@@ -16,3 +16,12 @@ services:
         generateValue: true
     healthCheckPath: /health
     autoDeploy: true
+
+  - type: web
+    name: bookswap-web
+    runtime: docker
+    dockerfilePath: ./Dockerfile.web
+    envVars:
+      - key: PORT
+        value: 10000
+    autoDeploy: true

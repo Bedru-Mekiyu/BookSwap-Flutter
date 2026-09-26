@@ -1,0 +1,33 @@
+# Stage 1: Build Flutter Web application
+FROM ghcr.io/cirruslabs/flutter:stable AS builder
+
+WORKDIR /app
+
+# Cache dependencies
+COPY bookswap/pubspec.yaml bookswap/pubspec.lock ./
+RUN flutter pub get
+
+# Copy all Flutter client source code
+COPY bookswap/ .
+
+# Build web distribution with production live API URL
+RUN flutter build web --release --dart-define=BASE_URL=https://bookswap-backend-eygy.onrender.com
+
+# Stage 2: Serve using Nginx Alpine
+FROM nginx:alpine
+
+# Default PORT if not provided by host
+ENV PORT=80
+
+# Remove default nginx configs
+RUN rm -rf /etc/nginx/conf.d/*
+
+# Copy Nginx template for automatic PORT injection via envsubst
+COPY nginx.conf.template /etc/nginx/templates/default.conf.template
+
+# Copy built web artifacts
+COPY --from=builder /app/build/web /usr/share/nginx/html
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:io';
+import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:bookswap/providers/books_provider.dart';
 import 'package:dio/dio.dart';
@@ -20,8 +20,9 @@ class _AddBookPageState extends ConsumerState<AddBookPage> {
   final TextEditingController _editionController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   String? _selectedGenre;
-  File? _imageFile;
-  File? _pdfFile;
+  Uint8List? _imageBytes;
+  String? _imageFileName;
+  Uint8List? _pdfBytes;
   String? _pdfFileName;
 
   final ImagePicker _picker = ImagePicker();
@@ -41,23 +42,26 @@ class _AddBookPageState extends ConsumerState<AddBookPage> {
       source: ImageSource.gallery,
     );
 
-    setState(() {
-      if (pickedFile != null) {
-        _imageFile = File(pickedFile.path);
-      }
-    });
+    if (pickedFile != null) {
+      final bytes = await pickedFile.readAsBytes();
+      setState(() {
+        _imageBytes = bytes;
+        _imageFileName = pickedFile.name;
+      });
+    }
   }
 
   Future<void> _pickPDF() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['pdf'],
+      withData: true,
     );
 
-    if (result != null) {
+    if (result != null && result.files.isNotEmpty) {
       setState(() {
-        _pdfFile = File(result.files.single.path!);
-        _pdfFileName = result.files.single.name;
+        _pdfBytes = result.files.first.bytes;
+        _pdfFileName = result.files.first.name;
       });
     }
   }
@@ -79,7 +83,7 @@ class _AddBookPageState extends ConsumerState<AddBookPage> {
       return;
     }
 
-    if (_imageFile == null && _pdfFile == null) {
+    if (_imageBytes == null && _pdfBytes == null) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -100,25 +104,25 @@ class _AddBookPageState extends ConsumerState<AddBookPage> {
         'description': description,
       });
 
-      if (_imageFile != null) {
+      if (_imageBytes != null) {
         formData.files.add(
           MapEntry(
             'photo',
-            await MultipartFile.fromFile(
-              _imageFile!.path,
-              filename: _imageFile!.path.split('/').last,
+            MultipartFile.fromBytes(
+              _imageBytes!,
+              filename: _imageFileName ?? 'cover.jpg',
             ),
           ),
         );
       }
 
-      if (_pdfFile != null) {
+      if (_pdfBytes != null) {
         formData.files.add(
           MapEntry(
             'pdf_file',
-            await MultipartFile.fromFile(
-              _pdfFile!.path,
-              filename: _pdfFile!.path.split('/').last,
+            MultipartFile.fromBytes(
+              _pdfBytes!,
+              filename: _pdfFileName ?? 'document.pdf',
             ),
           ),
         );
@@ -184,7 +188,7 @@ class _AddBookPageState extends ConsumerState<AddBookPage> {
                           borderRadius: BorderRadius.circular(10.0),
                         ),
                         child:
-                            _imageFile == null
+                            _imageBytes == null
                                 ? Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: const [
@@ -200,7 +204,7 @@ class _AddBookPageState extends ConsumerState<AddBookPage> {
                                     ),
                                   ],
                                 )
-                                : Image.file(_imageFile!, fit: BoxFit.cover),
+                                : Image.memory(_imageBytes!, fit: BoxFit.cover),
                       ),
                     ),
                     const SizedBox(height: 15),
@@ -216,7 +220,7 @@ class _AddBookPageState extends ConsumerState<AddBookPage> {
                         ),
                         child: Center(
                           child:
-                              _pdfFile == null
+                              _pdfBytes == null
                                   ? Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: const [
