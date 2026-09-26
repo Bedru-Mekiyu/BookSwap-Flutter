@@ -5,7 +5,7 @@ class DioClient {
   static Dio? _dio;
   static const String baseUrl = String.fromEnvironment(
     'BASE_URL',
-    defaultValue: 'http://10.0.2.2:4000',
+    defaultValue: 'https://bookswap-backend-eygy.onrender.com',
   );
 
   static String buildMediaUrl(String? path) {
