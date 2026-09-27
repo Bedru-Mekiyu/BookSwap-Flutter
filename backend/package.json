@@ -5,7 +5,9 @@
   "scripts": {
     "start": "node app.js",
     "dev": "nodemon app.js",
-    "test": "jest --detectOpenHandles"
+    "test": "jest --detectOpenHandles",
+    "seed": "node seed.js",
+    "seed:remote": "node seed.js --remote"
   },
   "keywords": [],
   "author": "",

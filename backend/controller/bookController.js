@@ -9,11 +9,15 @@ const addBook = async (req, res) => {
     let photoPath = null;
     if (req.files && req.files['photo'] && req.files['photo'][0]) {
       photoPath = req.files['photo'][0].path.replace(/\\/g, '/'); // Path to uploaded photo
+    } else if (req.body && req.body.photo) {
+      photoPath = req.body.photo;
     }
 
     let pdfFilePath = null;
     if (req.files && req.files['pdf_file'] && req.files['pdf_file'][0]) {
       pdfFilePath = req.files['pdf_file'][0].path.replace(/\\/g, '/'); // Path to uploaded PDF
+    } else if (req.body && req.body.pdf_file) {
+      pdfFilePath = req.body.pdf_file;
     }
 
     const newBook = new Book({
@@ -50,8 +54,16 @@ const getBooks = async (req, res) => {
     console.log('Request query:', req.query); // Debug log
     let {search, page, limit, genre} = req.query;
     let filter = {}
-    if(search !== undefined) filter.title = new RegExp(search, "i");
-    if (genre !== undefined) filter.genre = genre; // Ensure 'genre' is defined if used
+    if (search !== undefined && search.trim() !== '') {
+      filter.$or = [
+        { title: new RegExp(search.trim(), "i") },
+        { author: new RegExp(search.trim(), "i") },
+        { genre: new RegExp(search.trim(), "i") }
+      ];
+    }
+    if (genre !== undefined && genre.trim() !== '' && genre.toLowerCase() !== 'all') {
+      filter.genre = new RegExp(`^${genre.trim()}$`, "i");
+    }
     // Remove or comment out pagination for now to show all books
     // page = parseInt(page) || 1;
     // limit = parseInt(limit) || 5;

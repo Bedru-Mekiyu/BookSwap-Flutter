@@ -39,14 +39,22 @@ class BooksNotifier extends StateNotifier<BooksState> {
   final Ref _ref;
   BooksNotifier(this._ref) : super(BooksState());
 
-  Future<void> fetchBooks({String? searchQuery}) async {
+  Future<void> fetchBooks({String? searchQuery, String? genre}) async {
     try {
       state = state.copyWith(isLoading: true, error: null);
       print('Fetching books...');
 
+      final Map<String, dynamic> queryParams = {};
+      if (searchQuery != null && searchQuery.trim().isNotEmpty) {
+        queryParams['search'] = searchQuery.trim();
+      }
+      if (genre != null && genre.trim().isNotEmpty && genre.trim().toLowerCase() != 'all') {
+        queryParams['genre'] = genre.trim();
+      }
+
       final response = await DioClient.dio.get(
         '/api/books/book',
-        queryParameters: searchQuery != null ? {'search': searchQuery} : null,
+        queryParameters: queryParams.isNotEmpty ? queryParams : null,
       );
 
       print('Response received: ${response.data}');
