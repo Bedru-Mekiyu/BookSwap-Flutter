@@ -7,7 +7,9 @@ import 'package:bookswap/core/dio_client.dart';
 import 'package:dio/dio.dart';
 
 class ProfilePage extends ConsumerStatefulWidget {
-  const ProfilePage({super.key});
+  final bool isTab;
+
+  const ProfilePage({super.key, this.isTab = false});
 
   @override
   ConsumerState<ProfilePage> createState() => _ProfilePageState();
@@ -22,10 +24,35 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     });
   }
 
+  void _confirmLogout() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Log Out'),
+          content: const Text('Are you sure you want to log out of BookSwap?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _logout();
+              },
+              child: const Text('Log Out', style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<void> _logout() async {
     await ref.read(authProvider.notifier).logout();
     if (mounted) {
-      Navigator.pushReplacementNamed(context, '/login');
+      Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Successfully logged out.')));
@@ -112,12 +139,19 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       backgroundColor: const Color(0xFFF3E5F5), // Light purple background
       appBar: AppBar(
         backgroundColor: Colors.white,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
+        automaticallyImplyLeading: !widget.isTab,
+        leading: widget.isTab
+            ? null
+            : IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.black),
+                onPressed: () {
+                  if (Navigator.canPop(context)) {
+                    Navigator.pop(context);
+                  } else {
+                    Navigator.pushReplacementNamed(context, '/home');
+                  }
+                },
+              ),
         title: Text(
           profileState.username,
           style: const TextStyle(
@@ -244,6 +278,34 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                             elevation: 2.0,
                             child: ListTile(
                               leading: const Icon(
+                                Icons.swap_horiz,
+                                color: Colors.purple,
+                              ),
+                              title: const Text(
+                                'My Swap Requests',
+                                style: TextStyle(fontSize: 16),
+                              ),
+                              subtitle: const Text('View sent & received trades'),
+                              trailing: const Icon(
+                                Icons.arrow_forward_ios,
+                                size: 16,
+                              ),
+                              onTap: () {
+                                Navigator.pushNamed(
+                                  context,
+                                  '/my_swap_requests',
+                                );
+                              },
+                            ),
+                          ),
+                          Card(
+                            margin: const EdgeInsets.symmetric(vertical: 8.0),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10.0),
+                            ),
+                            elevation: 2.0,
+                            child: ListTile(
+                              leading: const Icon(
                                 Icons.lock,
                                 color: Colors.purple,
                               ),
@@ -275,14 +337,15 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                                 color: Colors.purple,
                               ),
                               title: const Text(
-                                'Logging out',
+                                'Log Out',
                                 style: TextStyle(fontSize: 16),
                               ),
+                              subtitle: const Text('Sign out of your account'),
                               trailing: const Icon(
                                 Icons.arrow_forward_ios,
                                 size: 16,
                               ),
-                              onTap: _logout,
+                              onTap: _confirmLogout,
                             ),
                           ),
                           Card(
@@ -354,8 +417,10 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                   ),
                 ],
               ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 3,
+      bottomNavigationBar: widget.isTab
+          ? null
+          : BottomNavigationBar(
+              currentIndex: 3,
         onTap: _onItemTapped,
         backgroundColor: Colors.black,
         selectedItemColor: Colors.white,

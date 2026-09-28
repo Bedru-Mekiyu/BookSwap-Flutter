@@ -49,9 +49,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           context,
         ).showSnackBar(const SnackBar(content: Text('Login successful!')));
 
-        Navigator.pushReplacement(
+        Navigator.pushNamedAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (context) => const HomePage()),
+          '/home',
+          (route) => false,
         );
       } else if (authState.error != null) {
         ScaffoldMessenger.of(

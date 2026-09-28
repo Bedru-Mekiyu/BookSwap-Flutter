@@ -5,7 +5,10 @@ import 'package:bookswap/providers/auth_provider.dart';
 import 'package:bookswap/core/dio_client.dart';
 
 class MyBookListPage extends ConsumerStatefulWidget {
-  const MyBookListPage({super.key});
+  final bool isTab;
+  final VoidCallback? onAddBook;
+
+  const MyBookListPage({super.key, this.isTab = false, this.onAddBook});
 
   @override
   ConsumerState<MyBookListPage> createState() => _MyBookListPageState();
@@ -73,18 +76,32 @@ class _MyBookListPageState extends ConsumerState<MyBookListPage> {
       backgroundColor: const Color(0xFFF3E5F5),
       appBar: AppBar(
         backgroundColor: Colors.white,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
+        automaticallyImplyLeading: !widget.isTab,
+        leading: widget.isTab
+            ? null
+            : IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.black),
+                onPressed: () {
+                  if (Navigator.canPop(context)) {
+                    Navigator.pop(context);
+                  } else {
+                    Navigator.pushReplacementNamed(context, '/home');
+                  }
+                },
+              ),
         title: const Text(
           'My Books',
           style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh, color: Colors.black),
+            tooltip: 'Refresh Books',
+            onPressed: _fetchMyBooks,
+          ),
+        ],
       ),
       body:
           booksState.isLoading
@@ -108,16 +125,65 @@ class _MyBookListPageState extends ConsumerState<MyBookListPage> {
                 ),
               )
               : booksState.books.isEmpty
-              ? const Center(
-                child: Text(
-                  'You have no books listed yet. Add some!',
-                  style: TextStyle(fontSize: 18, color: Colors.black54),
-                  textAlign: TextAlign.center,
-                ),
-              )
-              : ListView.builder(
-                padding: const EdgeInsets.all(16.0),
-                itemCount: booksState.books.length,
+              ? RefreshIndicator(
+                  onRefresh: _fetchMyBooks,
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: Container(
+                      height: MediaQuery.of(context).size.height * 0.7,
+                      padding: const EdgeInsets.all(24.0),
+                      alignment: Alignment.center,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.menu_book, size: 70, color: Colors.purple.shade200),
+                          const SizedBox(height: 16),
+                          const Text(
+                            'You have no books listed yet.',
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: Colors.black87,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            'Share books from your collection to start swapping with others.',
+                            style: TextStyle(fontSize: 14, color: Colors.black54),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 24),
+                          ElevatedButton.icon(
+                            onPressed:
+                                widget.onAddBook ??
+                                () => Navigator.pushNamed(context, '/add_book'),
+                            icon: const Icon(Icons.add, color: Colors.white),
+                            label: const Text(
+                              'Add Your First Book',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.purple,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                                vertical: 12,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                )
+              : RefreshIndicator(
+                  onRefresh: _fetchMyBooks,
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(16.0),
+                    itemCount: booksState.books.length,
                 itemBuilder: (context, index) {
                   final book = booksState.books[index];
                   return Card(

@@ -96,7 +96,11 @@ class _BookDetailPageState extends ConsumerState<BookDetailPage> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () {
-            Navigator.pop(context);
+            if (Navigator.canPop(context)) {
+              Navigator.pop(context);
+            } else {
+              Navigator.pushReplacementNamed(context, '/home');
+            }
           },
         ),
         centerTitle: true,
@@ -227,32 +231,77 @@ class _BookDetailPageState extends ConsumerState<BookDetailPage> {
                           const SizedBox(height: 20),
                         ],
                       ),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: booksState.isLoading ? null : _requestSwap,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF8A2BE2),
-                          padding: const EdgeInsets.symmetric(vertical: 15),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                        child: booksState.isLoading
-                            ? const CircularProgressIndicator(
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  Colors.white,
-                                ),
-                              )
-                            : const Text(
-                                'Request Swap',
+                    Builder(
+                      builder: (context) {
+                        final currentUser = ref.watch(authProvider).user;
+                        final currentUserId = currentUser?['_id']?.toString();
+                        final ownerId = (widget.book['owner'] is Map)
+                            ? widget.book['owner']['_id']?.toString()
+                            : widget.book['owner']?.toString();
+                        final isOwnBook = currentUserId != null &&
+                            ownerId != null &&
+                            currentUserId == ownerId;
+
+                        if (isOwnBook) {
+                          return SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              onPressed: () {
+                                Navigator.pushNamed(
+                                  context,
+                                  '/edit_book',
+                                  arguments: widget.book,
+                                );
+                              },
+                              icon: const Icon(Icons.edit, color: Colors.white),
+                              label: const Text(
+                                'Edit Your Book',
                                 style: TextStyle(
                                   fontSize: 18,
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                      ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.deepPurple,
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 15),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                            ),
+                          );
+                        }
+
+                        return SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: booksState.isLoading ? null : _requestSwap,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF8A2BE2),
+                              padding: const EdgeInsets.symmetric(vertical: 15),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            child: booksState.isLoading
+                                ? const CircularProgressIndicator(
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white,
+                                    ),
+                                  )
+                                : const Text(
+                                    'Request Swap',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                          ),
+                        );
+                      },
                     ),
                   ],
                 ),

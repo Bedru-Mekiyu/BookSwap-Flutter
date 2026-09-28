@@ -24,14 +24,40 @@ class _AdminProfilePageState extends State<AdminProfilePage> {
     _fetchUserProfile();
   }
 
+  void _confirmLogout() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Log Out'),
+          content: const Text('Are you sure you want to log out of the Admin panel?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _logout();
+              },
+              child: const Text('Log Out', style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<void> _logout() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.remove('auth_token');
     if (mounted) {
-      Navigator.pushReplacementNamed(
+      Navigator.pushNamedAndRemoveUntil(
         context,
         '/admin_auth',
-      ); // Redirect to admin login
+        (route) => false,
+      ); // Redirect to admin login and clear stack
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Successfully logged out.')));
@@ -284,7 +310,7 @@ class _AdminProfilePageState extends State<AdminProfilePage> {
                                   color: Colors.red,
                                 ),
                               ),
-                              onTap: _logout,
+                              onTap: _confirmLogout,
                             ),
                           ),
                         ],

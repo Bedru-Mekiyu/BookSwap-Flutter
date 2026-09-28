@@ -118,7 +118,11 @@ class _AddUserPageState extends State<AddUserPage> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () {
-            Navigator.pushReplacementNamed(context, '/admin_dashboard');
+            if (Navigator.canPop(context)) {
+              Navigator.pop(context);
+            } else {
+              Navigator.pushReplacementNamed(context, '/admin_dashboard');
+            }
           },
         ),
         title: const Text(

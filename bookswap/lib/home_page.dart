@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:bookswap/providers/books_provider.dart';
 import 'package:bookswap/providers/auth_provider.dart';
 import 'package:bookswap/core/dio_client.dart';
+import 'package:bookswap/my_book_list_page.dart';
+import 'package:bookswap/add_books_page.dart';
+import 'package:bookswap/my_swap_request_page.dart';
+import 'package:bookswap/profile_page.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
@@ -12,6 +17,8 @@ class HomePage extends ConsumerStatefulWidget {
 }
 
 class _HomePageState extends ConsumerState<HomePage> {
+  int _currentIndex = 0;
+  DateTime? _lastBackPressTime;
   final TextEditingController _searchController = TextEditingController();
   String _selectedGenre = 'All';
 
@@ -78,26 +85,16 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   void _onItemTapped(int index) {
-    switch (index) {
-      case 0:
-        _loadBooks();
-        break;
-      case 1:
-        Navigator.pushReplacementNamed(context, '/my_book');
-        break;
-      case 2:
-        Navigator.pushReplacementNamed(context, '/add_book');
-        break;
-      case 3:
-        Navigator.pushReplacementNamed(context, '/profile');
-        break;
+    if (_currentIndex == index) {
+      if (index == 0) _loadBooks();
+      return;
     }
+    setState(() {
+      _currentIndex = index;
+    });
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final booksState = ref.watch(booksProvider);
-
+  Widget _buildHomeTab(BuildContext context, BooksState booksState) {
     return Scaffold(
       backgroundColor: const Color(0xFFF3E5F5),
       appBar: AppBar(
@@ -110,19 +107,26 @@ class _HomePageState extends ConsumerState<HomePage> {
         elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout, color: Colors.black),
-            onPressed: () async {
-              await ref.read(authProvider.notifier).logout();
-              if (mounted) {
-                Navigator.pushReplacementNamed(context, '/');
-              }
+            icon: const Icon(Icons.swap_horiz, color: Color(0xFF8A2BE2)),
+            tooltip: 'Swap Requests',
+            onPressed: () {
+              setState(() {
+                _currentIndex = 3;
+              });
             },
+          ),
+          IconButton(
+            icon: const Icon(Icons.refresh, color: Colors.black87),
+            tooltip: 'Refresh Books',
+            onPressed: _loadBooks,
           ),
         ],
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+      body: RefreshIndicator(
+        onRefresh: _loadBooks,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
           // Search Bar
           Padding(
             padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
@@ -471,20 +475,101 @@ class _HomePageState extends ConsumerState<HomePage> {
           ),
         ],
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 0,
-        onTap: _onItemTapped,
-        backgroundColor: Colors.black,
-        selectedItemColor: Colors.white,
-        unselectedItemColor: Colors.grey,
-        type: BottomNavigationBarType.fixed,
-        elevation: 0,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.book), label: 'My Books'),
-          BottomNavigationBarItem(icon: Icon(Icons.add), label: 'Add Book'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-        ],
+    ),
+  );
+}
+
+  @override
+  Widget build(BuildContext context) {
+    final booksState = ref.watch(booksProvider);
+
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, dynamic result) {
+        if (didPop) return;
+
+        // If not on Home tab, switch back to Home tab first
+        if (_currentIndex != 0) {
+          setState(() {
+            _currentIndex = 0;
+          });
+          return;
+        }
+
+        // If already on Home tab, require double-press within 2 seconds to exit
+        final now = DateTime.now();
+        if (_lastBackPressTime == null ||
+            now.difference(_lastBackPressTime!) > const Duration(seconds: 2)) {
+          _lastBackPressTime = now;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Press back again to exit BookSwap'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+          return;
+        }
+
+        SystemNavigator.pop();
+      },
+      child: Scaffold(
+        body: IndexedStack(
+          index: _currentIndex,
+          children: [
+            _buildHomeTab(context, booksState),
+            MyBookListPage(
+              isTab: true,
+              onAddBook: () => setState(() => _currentIndex = 2),
+            ),
+            AddBookPage(
+              isTab: true,
+              onSuccess: () {
+                setState(() => _currentIndex = 1);
+                ref.read(booksProvider.notifier).fetchUserBooks();
+              },
+            ),
+            const MySwapRequestsPage(isTab: true),
+            const ProfilePage(isTab: true),
+          ],
+        ),
+        bottomNavigationBar: BottomNavigationBar(
+          currentIndex: _currentIndex,
+          onTap: _onItemTapped,
+          backgroundColor: Colors.black,
+          selectedItemColor: Colors.white,
+          unselectedItemColor: Colors.grey,
+          type: BottomNavigationBarType.fixed,
+          elevation: 8,
+          selectedFontSize: 12,
+          unselectedFontSize: 11,
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home_outlined),
+              activeIcon: Icon(Icons.home),
+              label: 'Home',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.menu_book_outlined),
+              activeIcon: Icon(Icons.menu_book),
+              label: 'My Books',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.add_circle_outline),
+              activeIcon: Icon(Icons.add_circle),
+              label: 'Add Book',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.swap_horiz_outlined),
+              activeIcon: Icon(Icons.swap_horiz),
+              label: 'Requests',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person_outline),
+              activeIcon: Icon(Icons.person),
+              label: 'Profile',
+            ),
+          ],
+        ),
       ),
     );
   }

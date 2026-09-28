@@ -7,7 +7,10 @@ import 'package:bookswap/providers/books_provider.dart';
 import 'package:dio/dio.dart';
 
 class AddBookPage extends ConsumerStatefulWidget {
-  const AddBookPage({super.key});
+  final bool isTab;
+  final VoidCallback? onSuccess;
+
+  const AddBookPage({super.key, this.isTab = false, this.onSuccess});
 
   @override
   ConsumerState<AddBookPage> createState() => _AddBookPageState();
@@ -134,7 +137,26 @@ class _AddBookPageState extends ConsumerState<AddBookPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Book added successfully!')),
         );
-        Navigator.pushReplacementNamed(context, '/home');
+        _titleController.clear();
+        _authorController.clear();
+        _languageController.clear();
+        _editionController.clear();
+        _descriptionController.clear();
+        setState(() {
+          _selectedGenre = null;
+          _imageBytes = null;
+          _imageFileName = null;
+          _pdfBytes = null;
+          _pdfFileName = null;
+        });
+
+        if (widget.onSuccess != null) {
+          widget.onSuccess!();
+        } else if (Navigator.canPop(context)) {
+          Navigator.pop(context);
+        } else {
+          Navigator.pushReplacementNamed(context, '/home');
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -157,12 +179,19 @@ class _AddBookPageState extends ConsumerState<AddBookPage> {
       backgroundColor: const Color(0xFFF3E5F5),
       appBar: AppBar(
         backgroundColor: Colors.white,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {
-            Navigator.pushReplacementNamed(context, '/admin_dashboard');
-          },
-        ),
+        automaticallyImplyLeading: !widget.isTab,
+        leading: widget.isTab
+            ? null
+            : IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.black),
+                onPressed: () {
+                  if (Navigator.canPop(context)) {
+                    Navigator.pop(context);
+                  } else {
+                    Navigator.pushReplacementNamed(context, '/home');
+                  }
+                },
+              ),
         title: const Text(
           'Add Book',
           style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
@@ -405,8 +434,10 @@ class _AddBookPageState extends ConsumerState<AddBookPage> {
                   ],
                 ),
               ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 2, // 'Add Book' is at index 2
+      bottomNavigationBar: widget.isTab
+          ? null
+          : BottomNavigationBar(
+              currentIndex: 2, // 'Add Book' is at index 2
         onTap: (index) {
           if (index == 0) {
             Navigator.pushReplacementNamed(context, '/home');

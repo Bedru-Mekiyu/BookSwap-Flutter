@@ -70,9 +70,10 @@ class _SignupPageState extends ConsumerState<SignupPage> {
 
       // Navigate to home page after successful registration
       if (!mounted) return; // Add mounted check before navigation
-      Navigator.pushReplacement(
+      Navigator.pushNamedAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (context) => const HomePage()),
+        '/home',
+        (route) => false,
       );
     } catch (e) {
       if (!mounted) return;

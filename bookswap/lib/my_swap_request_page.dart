@@ -4,7 +4,9 @@ import 'package:bookswap/providers/books_provider.dart';
 import 'package:bookswap/providers/auth_provider.dart';
 
 class MySwapRequestsPage extends ConsumerStatefulWidget {
-  const MySwapRequestsPage({super.key});
+  final bool isTab;
+
+  const MySwapRequestsPage({super.key, this.isTab = false});
 
   @override
   ConsumerState<MySwapRequestsPage> createState() => _MySwapRequestsPageState();
@@ -149,18 +151,32 @@ class _MySwapRequestsPageState extends ConsumerState<MySwapRequestsPage> {
       backgroundColor: const Color(0xFFF3E5F5),
       appBar: AppBar(
         backgroundColor: Colors.white,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
+        automaticallyImplyLeading: !widget.isTab,
+        leading: widget.isTab
+            ? null
+            : IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.black),
+                onPressed: () {
+                  if (Navigator.canPop(context)) {
+                    Navigator.pop(context);
+                  } else {
+                    Navigator.pushReplacementNamed(context, '/home');
+                  }
+                },
+              ),
         title: const Text(
           'Swap Requests',
           style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh, color: Colors.black),
+            tooltip: 'Refresh Requests',
+            onPressed: _fetchSwapRequests,
+          ),
+        ],
       ),
       body:
           booksState.isLoading
