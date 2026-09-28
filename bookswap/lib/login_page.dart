@@ -25,7 +25,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 
   Future<void> _loginUser() async {
-    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please fill in all fields')),
       );
@@ -35,7 +38,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     try {
       await ref
           .read(authProvider.notifier)
-          .login(_emailController.text, _passwordController.text);
+          .login(email, password);
 
       if (!mounted) return;
 
@@ -55,17 +58,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           context,
         ).showSnackBar(SnackBar(content: Text(authState.error!)));
       }
-    } on DioException catch (e) {
-      if (!mounted) return;
-      String errorMessage = 'An error occurred during login.';
-      if (e.response?.data?['message'] != null) {
-        errorMessage = e.response!.data['message'];
-      } else if (e.response?.statusCode != null) {
-        errorMessage = 'Login failed: ${e.response!.statusCode}';
-      }
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(errorMessage)));
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

@@ -33,8 +33,20 @@ class _SignupPageState extends ConsumerState<SignupPage> {
 
   // Function to handle registration
   Future<void> _registerUser() async {
+    final name = _fullNameController.text.trim();
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+    final confirmPassword = _confirmPasswordController.text.trim();
+
+    if (name.isEmpty || email.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please fill in all fields.')));
+      return;
+    }
+
     // Basic validation
-    if (_passwordController.text != _confirmPasswordController.text) {
+    if (password != confirmPassword) {
       // Show an error message if passwords don't match
       ScaffoldMessenger.of(
         context,
@@ -46,9 +58,9 @@ class _SignupPageState extends ConsumerState<SignupPage> {
       await ref
           .read(authProvider.notifier)
           .signup(
-            _fullNameController.text,
-            _emailController.text,
-            _passwordController.text,
+            name,
+            email,
+            password,
           );
 
       if (!mounted) return; // Add mounted check before showing SnackBar

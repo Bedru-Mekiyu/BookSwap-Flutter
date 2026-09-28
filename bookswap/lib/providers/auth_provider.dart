@@ -48,6 +48,24 @@ class AuthNotifier extends StateNotifier<AuthState> {
     _loadAuthToken();
   }
 
+  String _parseDioError(DioException e, String fallback) {
+    if (e.response?.data is Map && e.response?.data['message'] != null) {
+      return e.response!.data['message'].toString();
+    }
+    if (e.type == DioExceptionType.connectionTimeout ||
+        e.type == DioExceptionType.receiveTimeout ||
+        e.type == DioExceptionType.sendTimeout) {
+      return 'Connection timed out. The server may be waking up from free-tier sleep (takes ~30-45s). Please try again.';
+    }
+    if (e.type == DioExceptionType.connectionError) {
+      return 'Cannot reach the server. Please check your internet connection or try again shortly.';
+    }
+    if (e.message != null && e.message!.isNotEmpty) {
+      return e.message!;
+    }
+    return fallback;
+  }
+
   Future<void> _loadAuthToken() async {
     print(
       'Attempting to load auth token from SharedPreferences...',
@@ -85,7 +103,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
           isAuthenticated: false,
           user: null,
           isLoading: false,
-          error: e.response?.data?['message'] ?? 'Failed to fetch user',
+          error: _parseDioError(e, 'Failed to fetch user'),
         );
       }
     } catch (e) {
@@ -127,13 +145,13 @@ class AuthNotifier extends StateNotifier<AuthState> {
       print('Response data: ${e.response?.data}'); // Debug log
       state = state.copyWith(
         isLoading: false,
-        error: e.response?.data?['message'] ?? 'Failed to login',
+        error: _parseDioError(e, 'Failed to login'),
       );
     } catch (e) {
       print('Unexpected error during login: $e'); // Debug log
       state = state.copyWith(
         isLoading: false,
-        error: 'An unexpected error occurred',
+        error: 'An unexpected error occurred: ${e.toString()}',
       );
     }
   }
@@ -154,7 +172,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
       await _fetchUser();
     } on DioException catch (e) {
-      final errorMsg = e.response?.data?['message'] ?? 'Failed to signup';
+      final errorMsg = _parseDioError(e, 'Failed to signup');
       state = state.copyWith(
         isLoading: false,
         error: errorMsg,
@@ -163,7 +181,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        error: 'An unexpected error occurred',
+        error: 'An unexpected error occurred: ${e.toString()}',
       );
       rethrow;
     }
@@ -192,7 +210,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
       state = state.copyWith(isLoading: false, error: null);
     } on DioException catch (e) {
-      final errorMsg = e.response?.data?['message'] ?? 'Failed to change password';
+      final errorMsg = _parseDioError(e, 'Failed to change password');
       state = state.copyWith(
         isLoading: false,
         error: errorMsg,
@@ -201,7 +219,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        error: 'An unexpected error occurred',
+        error: 'An unexpected error occurred: ${e.toString()}',
       );
       rethrow;
     }
@@ -216,13 +234,13 @@ class AuthNotifier extends StateNotifier<AuthState> {
     } on DioException catch (e) {
       state = state.copyWith(
         isLoading: false,
-        error: e.response?.data?['message'] ?? 'Failed to delete account',
+        error: _parseDioError(e, 'Failed to delete account'),
       );
       rethrow;
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        error: 'An unexpected error occurred',
+        error: 'An unexpected error occurred: ${e.toString()}',
       );
       rethrow;
     }
@@ -246,7 +264,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
         error: null,
       );
     } on DioException catch (e) {
-      final errorMsg = e.response?.data?['message'] ?? 'Failed to update profile';
+      final errorMsg = _parseDioError(e, 'Failed to update profile');
       state = state.copyWith(
         isLoading: false,
         error: errorMsg,
@@ -255,7 +273,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        error: 'An unexpected error occurred',
+        error: 'An unexpected error occurred: ${e.toString()}',
       );
       rethrow;
     }
@@ -269,11 +287,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
       return isAdminRegistered;
     } on DioException catch (e) {
       state = state.copyWith(
-        error: e.response?.data?['message'] ?? 'Failed to check admin status',
+        error: _parseDioError(e, 'Failed to check admin status'),
       );
       rethrow;
     } catch (e) {
-      state = state.copyWith(error: 'An unexpected error occurred');
+      state = state.copyWith(error: 'An unexpected error occurred: ${e.toString()}');
       rethrow;
     }
   }
@@ -290,7 +308,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
         '/api/auth/admin-signup',
         data: {'name': username, 'email': email, 'password': password},
       );
-state = state.copyWith(
+      state = state.copyWith(
         isAdminRegistered: true,
         isLoading: false,
         error: null,
@@ -298,12 +316,12 @@ state = state.copyWith(
     } on DioException catch (e) {
       state = state.copyWith(
         isLoading: false,
-        error: e.response?.data?['message'] ?? 'Failed to signup admin',
+        error: _parseDioError(e, 'Failed to signup admin'),
       );
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        error: 'An unexpected error occurred',
+        error: 'An unexpected error occurred: ${e.toString()}',
       );
     }
   }
@@ -330,12 +348,12 @@ state = state.copyWith(
     } on DioException catch (e) {
       state = state.copyWith(
         isLoading: false,
-        error: e.response?.data?['message'] ?? 'Failed to login admin',
+        error: _parseDioError(e, 'Failed to login admin'),
       );
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        error: 'An unexpected error occurred',
+        error: 'An unexpected error occurred: ${e.toString()}',
       );
     }
   }
@@ -358,13 +376,13 @@ state = state.copyWith(
     } on DioException catch (e) {
       state = state.copyWith(
         isLoading: false,
-        error: e.response?.data?['message'] ?? 'Failed to fetch users',
+        error: _parseDioError(e, 'Failed to fetch users'),
       );
       rethrow;
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        error: 'An unexpected error occurred',
+        error: 'An unexpected error occurred: ${e.toString()}',
       );
       rethrow;
     }
@@ -379,13 +397,13 @@ state = state.copyWith(
     } on DioException catch (e) {
       state = state.copyWith(
         isLoading: false,
-        error: e.response?.data?['message'] ?? 'Failed to delete user',
+        error: _parseDioError(e, 'Failed to delete user'),
       );
       rethrow;
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        error: 'An unexpected error occurred',
+        error: 'An unexpected error occurred: ${e.toString()}',
       );
       rethrow;
     }
@@ -415,13 +433,13 @@ state = state.copyWith(
     } on DioException catch (e) {
       state = state.copyWith(
         isLoading: false,
-        error: e.response?.data?['message'] ?? 'Failed to register user',
+        error: _parseDioError(e, 'Failed to register user'),
       );
       rethrow;
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        error: 'An unexpected error occurred',
+        error: 'An unexpected error occurred: ${e.toString()}',
       );
       rethrow;
     }
