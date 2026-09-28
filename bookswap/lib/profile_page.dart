@@ -8,8 +8,9 @@ import 'package:dio/dio.dart';
 
 class ProfilePage extends ConsumerStatefulWidget {
   final bool isTab;
+  final VoidCallback? onOpenSwapRequests;
 
-  const ProfilePage({super.key, this.isTab = false});
+  const ProfilePage({super.key, this.isTab = false, this.onOpenSwapRequests});
 
   @override
   ConsumerState<ProfilePage> createState() => _ProfilePageState();
@@ -291,10 +292,14 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                                 size: 16,
                               ),
                               onTap: () {
-                                Navigator.pushNamed(
-                                  context,
-                                  '/my_swap_requests',
-                                );
+                                if (widget.onOpenSwapRequests != null) {
+                                  widget.onOpenSwapRequests!();
+                                } else {
+                                  Navigator.pushNamed(
+                                    context,
+                                    '/my_swap_requests',
+                                  );
+                                }
                               },
                             ),
                           ),

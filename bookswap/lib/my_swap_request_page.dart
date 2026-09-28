@@ -201,26 +201,27 @@ class _MySwapRequestsPageState extends ConsumerState<MySwapRequestsPage> {
               )
               : Column(
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        Navigator.pushNamed(context, '/my_book_list');
-                      },
-                      icon: const Icon(Icons.book, color: Colors.white),
-                      label: const Text(
-                        'My Book List',
-                        style: TextStyle(color: Colors.white, fontSize: 18),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.deepPurple,
-                        minimumSize: const Size.fromHeight(50),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10.0),
+                  if (!widget.isTab)
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.pushNamed(context, '/my_book_list');
+                        },
+                        icon: const Icon(Icons.book, color: Colors.white),
+                        label: const Text(
+                          'My Book List',
+                          style: TextStyle(color: Colors.white, fontSize: 18),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.deepPurple,
+                          minimumSize: const Size.fromHeight(50),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10.0),
+                          ),
                         ),
                       ),
                     ),
-                  ),
                   Expanded(
                     child: DefaultTabController(
                       length: 2,
@@ -281,37 +282,6 @@ class _MySwapRequestsPageState extends ConsumerState<MySwapRequestsPage> {
                   ),
                 ],
               ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 1, // Set to 1 for 'My Books' tab
-        onTap: (index) {
-          switch (index) {
-            case 0:
-              Navigator.pushReplacementNamed(context, '/home');
-              break;
-            case 1:
-              // Current page, do nothing or refresh
-              _fetchSwapRequests(); // Refresh only this tab
-              break;
-            case 2:
-              Navigator.pushReplacementNamed(context, '/add_book');
-              break;
-            case 3:
-              Navigator.pushReplacementNamed(context, '/profile');
-              break;
-          }
-        },
-        backgroundColor: Colors.black,
-        selectedItemColor: Colors.white,
-        unselectedItemColor: Colors.grey,
-        type: BottomNavigationBarType.fixed,
-        elevation: 0,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.book), label: 'My Books'),
-          BottomNavigationBarItem(icon: Icon(Icons.add), label: 'Add Book'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-        ],
-      ),
     );
   }
 }

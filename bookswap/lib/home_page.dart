@@ -529,7 +529,10 @@ class _HomePageState extends ConsumerState<HomePage> {
               },
             ),
             const MySwapRequestsPage(isTab: true),
-            const ProfilePage(isTab: true),
+            ProfilePage(
+              isTab: true,
+              onOpenSwapRequests: () => setState(() => _currentIndex = 3),
+            ),
           ],
         ),
         bottomNavigationBar: BottomNavigationBar(
